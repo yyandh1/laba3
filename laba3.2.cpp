@@ -227,7 +227,7 @@ int main() {
         int R = 1;
         PoklingtonRazlozh(RandNum, F, R, PrimeMn);
 
-        if (m*2+1!=RandNum||!Miller(RandNum, MnozUnikPrime, t) || !Poklington(RandNum, MnozUnikPrime, t)) {
+        if (m*2+1!=RandNum||!Miller(RandNum, MnozUnikPrime, t) || !Poklington(RandNum, MnozUnikPrime, t)||R*F+1!=RandNum) {
             k++;
             i--;
             continue;
