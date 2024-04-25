@@ -4,6 +4,7 @@
 #include <ctime>
 #include <random>
 #include <map>
+
 using namespace std;
 
 int getRandomNumber(int min, int max) {  //генерация случайного числа в заданном диапазоне
@@ -11,7 +12,7 @@ int getRandomNumber(int min, int max) {  //генерация случайног
 }
 
 void Eratosthenes(vector<int>& PrimeNums) {  //решето Эратосфена
-    for(int i = 2; i < 500; i++){ // Заполняем вектор числами от 2 до 500, потому что 1 и 0 - не простые
+    for (int i = 2; i < 500; i++) { // Заполняем вектор числами от 2 до 500, потому что 1 и 0 - не простые
         PrimeNums.push_back(i);
     }
 
@@ -23,7 +24,8 @@ void Eratosthenes(vector<int>& PrimeNums) {  //решето Эратосфена
                     PrimeNums[k] = PrimeNums[k + 1]; //сдвигаем влево
                 }
                 PrimeNums.pop_back(); //и удаляем последний элемент
-            } else {
+            }
+            else {
                 j++;                  //если простое, идем дальше
             }
         }
@@ -42,116 +44,143 @@ int modPow(int a, int q, int RandNum) {  // Функция для возведе
     return result;
 }
 
-int MillerRazlozh(int m, int RandNum1, const vector<int>& PrimeNums, vector<int>& MnozUnikPrime, vector<int>& PrimeMn) {
-    for (size_t i = 0; i < PrimeNums.size(); i++) { // проверям для каждого простого числа является ли 
-        int degree = 0; // оно делителем для RandNum1
-        if (RandNum1 % PrimeNums[i] == 0) { // если является делителем, то простой множитель
-            while (RandNum1 % PrimeNums[i] == 0) { 
-                RandNum1 /= PrimeNums[i];
-                degree += 1;
-                PrimeMn.push_back(PrimeNums[i]); 
-            }
-            MnozUnikPrime.push_back(PrimeNums[i]); // добавляется в вектор множества уникальных делителей
-            m *= pow(PrimeNums[i], degree);
+int Canonical(int n, vector<int>& qi) {//раскладываем число n-1 на каноническое разложение (= m)
+    map<int, int> factors;
+
+    for (int i = 2; i * i <= n; i++) {
+        while (n % i == 0) {
+            factors[i]++;
+            n /= i;
+            qi.push_back(i);// собираем делители
         }
     }
-    return m/2; // возвращаем именно m/2 для получения d
+    if (n > 1) {
+        factors[n]++; // добавляем последний делитель, если такой есть
+    }
+
+    // Вычислите каноническую форму n
+    int m = 1;
+    for (const auto& factor : factors) {
+        m *= pow(factor.first, factor.second);
+    }
+
+    return m / 2;
 }
 
-bool Miller(int RandNum, const vector<int>& MnozUnikPrime, int t) {
-    if (RandNum == 2) { // если число равно двум, оно простое
+int Eiler(int p) { // определяем количество взаимно простых чисел для p 
+    int result = p;
+    for (int i = 2; i * i <= p; i++) { //проходимся до корня из числа
+        if (p % i == 0) { //если число разделилось на i, то мы уменьшаем р на i так как все числа,
+            while (p % i == 0) { // которые делятся на i не являются взаимно простыми с p
+                p /= i;
+            }
+            result -= result / i; // из результата вычитаем количество чисел result/i
+        }
+    }
+    if (p > 1) { // если п - простое число, которое не разделилось, то оно простое и результатом
+        result -= result / p; // функции будет р-1
+    }
+
+    return result;
+}
+
+bool TestMiller(int n, int t, vector<int>& qi) {
+    if (n == 2) {
         return true;
     }
-    if (RandNum < 2 || RandNum % 2 == 0) { // если число меньше двух или четное, оно составное
+    if (n < 2 || n % 2 == 0) {
         return false;
     }
-    bool MillerF1 = false; // для проверки теоремы ферма
-    bool MillerF2 = false;
 
-    for (int j=0; j<t; j++){
-        int a = getRandomNumber(2,RandNum-1); //случайное число a в диапазоне от 2 до RandNum-1
-        if (modPow(a,RandNum-1,RandNum) == 1) {//малая теорема ферма
-            MillerF1 = true;
-        }
+    int n_minus_1 = n - 1;
+    int m = Canonical(n_minus_1, qi);
 
-        for (size_t i = 0; i < MnozUnikPrime.size(); i++) {
-            if (modPow(a, (RandNum-1)/MnozUnikPrime[i], RandNum) == 1) { // а возводим в степень и проверяем его по свойству теста
-                MillerF2 = false; // если остаток = 1, то число считается составным
-                break;
-            } else {
-                MillerF2 = true; // если остаток отличен от 1, число считается простым
+    if (n_minus_1 = 2 * m) {
+        for (int j : qi) {
+            for (int i = 0; i < t; i++) {
+                int a = getRandomNumber(2, n - 2); //случайное число a в диапазоне от 2 до n-2
+
+                if (modPow(a, n_minus_1, n) == 1) { //первое условие
+                    return true;
+                }
+
+                //второе условие
+                int q_part = n_minus_1 / j; //(a^((n-1)/q)) mod n //Выбрать рандомное qi
+                int result = modPow(a, q_part, n);
             }
-        }
-        if (MillerF1==true && MillerF2==true) { // если число удовлетворяет двум условиям, оно простое
-            return true;
         }
     }
     return false;
 }
 
-int NOD(int a, int b) { // ищем наибольший общий делитель
-    if (b == 0) {
-        return a;
-    }
+int NOD(int a, int b) {
+    if (b == 0) return a;
     return NOD(b, a % b);
 }
 
-void PoklingtonRazlozh(int RandNum, int& F, int& R, const vector<int>& PrimeMn) {// Раскладываем на простые числа используя
-    for (size_t i = PrimeMn.size() - 1; i + 1 > 0; i--) { // разложение для миллера. Тут проходимся начиная с последнего
-        if (F <= sqrt(RandNum) - 1) { // если F меньше или равно "", то F умножается на простой множитель
-            F *= PrimeMn[i];
-        } else { // в противном случае умножаем R на простой множитель
-            R *= PrimeMn[i]; // цель разложения в том чтобы как можно ближе подойти к корню из рандомного числа
+int CanonicalF(int n, vector<int>& qi, int F, int& R) { // вычисление F и R   
+    for (size_t i = qi.size() - 1; i + 1 > 0; i--) {
+        if (F <= sqrt(n) - 1) {
+            F *= qi[i];
+        }
+        else {
+            R *= qi[i];
         }
     }
+    return F;
 }
 
-bool Poklington(int RandNum, const vector<int>& MnozUnikPrime, int t) {
-    if (RandNum == 2 || RandNum == 5) {// если число равно 2 или 5, оно простое
+bool TestPoklingtona(int n, int t, vector<int>& qi, int F, int R) {
+    if (n == 2) {
         return true;
     }
-    if (RandNum < 2 || RandNum % 2 == 0) { // если число меньше двух или четное, оно составное
+    if (n % 2 == 0 || n <= 1){
         return false;
+    } 
+
+    // Check if n is a very small prime
+    if (n > 2 && n < 10) {
+        return false; // n is not prime if it's a very small prime
     }
-    bool PoklingF1 = false;
-    bool PoklingF2 = false;
-    for (int j=0; j < t; j++) {
-        int a = getRandomNumber(2,RandNum-1);
-        if (modPow(a,RandNum-1,RandNum) != 1) { // по теореме ферма для простого числа остаток должен быть 1
-            PoklingF1 = false;
-        } else {
-            PoklingF1 = true;
-        }
-        for (size_t i = 0; i < MnozUnikPrime.size(); i++) { // условие теста Поклингтона
-            if (modPow(a, (RandNum-1)/MnozUnikPrime[i], RandNum) == 1) { // не должно давать остаток 1 
-                PoklingF2 = false; // при делении на RandNum для всех простых делителей
-                break;
-            } else {
-                PoklingF2 = true;
+    int n_minus_1 = n - 1;
+
+    if (n_minus_1 = R*F) {
+        for (int q : qi) {
+            bool foundNonTrivialSquareRoot = false;
+            for (int i = 0; i < t; i++) {
+                int a = getRandomNumber(2, n - 2); // Random number in the range [2, n-2]
+                int result = modPow(a, (n - 1) / q, n);
+
+                if (result != 1 && result != n - 1) {
+                    return false; // If a^((n-1)/q) mod n is not 1 or -1, n is composite
+                }
+                if (result != 1) {
+                    foundNonTrivialSquareRoot = true;
+                    break; // No need to check further for this q
+                }
+            }
+            if (!foundNonTrivialSquareRoot) {
+                return false; // If no non-trivial square root is found for q, n is composite
             }
         }
-        if (PoklingF1 == true && PoklingF2 == true) { // если ни разу флаг не менялся, то число простое
-            return true;
-        }
     }
-    return false;
+    return true; // If all q have a non-trivial square root, n is probably prime
 }
 
 bool GOST(int t, int q1) {
     int p = 0;
 
     while (true) {
-        int N1 = ceil(pow(2, t - 1) / q1); // создаем два числа, если число дробное, то
-        int N2 = ceil(pow(2, t - 1)*0/ (q1)); // округляем в большую сторону
+        int N1 = ceil(pow(2, t - 1) / q1);
+        int N2 = ceil(pow(2, t - 1) * 0 / (q1));
 
-        double N = N1 + N2;// если число оказалось нечетным, то
-        if (static_cast<int>(round(N)) % 2 != 0) { // мы добавим 1 и сделаем его четным
+        double N = N1 + N2;
+        if (static_cast<int>(round(N)) % 2 != 0) {
             N++;
         }
 
-        for (int u = 0; pow(2, t) >= (N + u) * q1 + 1; u += 2) { // ищем простое число p
-            p = (N + u) * q1 + 1; // если р - простое число, а не делится на р, то 
-            // а**(р-1) должно дать остаток 1, также проверяем, чтобы р не было делителем 2**(N + u)
+        for (int u = 0; pow(2, t) >= (N + u) * q1 + 1; u += 2) {
+            p = (N + u) * q1 + 1;
             if ((modPow(2, p - 1, p) == 1) && (modPow(2, N + u, p) != 1)) {
                 return true;
             }
@@ -160,55 +189,39 @@ bool GOST(int t, int q1) {
     return false;
 }
 
-int Eiler(int p) { // определяем количество взаимно простых чисел для p 
-    int result = p;
-    for (int i = 2; i * i <= p; i++) { //проходимся до корня из числа
-        if (p % i == 0) { //если число разделилось на i, то мы уменьшаем р на i так как все числа,
-            while (p % i == 0){ // которые делятся на i не являются взаимно простыми с p
-                p /= i;
-            }
-            result -= result / i; // из результата вычитаем количество чисел result/i
-        }
-    }
-    if (p > 1){ // если п - простое число, которое не разделилось, то оно простое и результатом
-        result -= result / p; // функции будет р-1
-    }
-        
-    return result;
-}
-
 bool VerTest(int RandNum, int t, int R, int F) {
-    if (NOD(R,F) == 1) { // если число простое, то вычисляем вероятность ошибки тестов
-    /*вычисляем функцию эйлера и делим на RandNum-1 для оценки теста миллера и погклингтона
-    умножаем на t так как это количество итераций тестов
-    из конечного результата вычитаем вероятности*/
-        double verMiller = (static_cast<double>(Eiler(RandNum-1))/static_cast<double>(RandNum-1)) * t;
-        double verPoklington = (static_cast<double>(Eiler(RandNum))/static_cast<double>(RandNum)) * t;
+    if (NOD(R, F) == 1) { // если число простое, то вычисляем вероятность ошибки тестов
+        /*вычисляем функцию эйлера и делим на RandNum-1 для оценки теста миллера и погклингтона
+        умножаем на t так как это количество итераций тестов
+        из конечного результата вычитаем вероятности*/
+        double verMiller = (static_cast<double>(Eiler(RandNum - 1)) / static_cast<double>(RandNum - 1)) * t;
+        double verPoklington = (static_cast<double>(Eiler(RandNum)) / static_cast<double>(RandNum)) * t;
         double result = 1 - verMiller - verPoklington;
         return (result <= 0.1);
-    } else {
+    }
+    else {
         /*Если нод не равен 1, то поклингтон бесполезен*/
-        double verMiller = (static_cast<double>(Eiler(RandNum-1))/static_cast<double>(RandNum-1)) * t;
+        double verMiller = (static_cast<double>(Eiler(RandNum - 1)) / static_cast<double>(RandNum - 1)) * t;
         double result = 1 - verMiller;
         return (result <= 0.1);
     }
 }
 
 void InPut(int RandNum, bool testResult, int k) { //выводим результаты
-    if (testResult && k <= 6) {
+    if (testResult && k <= 10) {
         cout << RandNum << " \t\t" << "+" << " \t\t" << k << endl;
-    } else {
+    }
+    else {
         cout << RandNum << " \t\t" << "-" << " \t\t" << k << endl;
     }
 }
 
 int main() {
-    system("chcp 65001");
     srand(time(0));
-    vector<int> PrimeNums;
-    Eratosthenes(PrimeNums);
+    vector<int> Prime;
+    Eratosthenes(Prime);
 
-    int t1 = 10;
+    int t1 = 5;
     int k = 0;
     int t = 4;
     int q1 = 3;
@@ -217,28 +230,29 @@ int main() {
     cout << "-------------------------------------------------------" << endl;
 
     for (int i = 0; i < 10; i++) {
-        vector<int> MnozUnikPrime;
-        vector<int> PrimeMn;
-        int RandNum = getRandomNumber(2, 500 - 2);
-        int RandNum1 = RandNum - 1;
-        int m = 1;
-        m = MillerRazlozh(m, RandNum1, PrimeNums, MnozUnikPrime, PrimeMn); // число, которое разложили на простые
+        vector <int> qi;
         int F = 1;
-        int R = 1;
-        PoklingtonRazlozh(RandNum, F, R, PrimeMn);
 
-        if (m*2+1!=RandNum||!Miller(RandNum, MnozUnikPrime, t) || !Poklington(RandNum, MnozUnikPrime, t)||R*F+1!=RandNum) {
+        int n = getRandomNumber(2, 500 - 2);
+        int n_minus_1 = n - 1;
+        int R = 1;
+        F = CanonicalF(n_minus_1, qi, F, R);
+
+        bool millerResult = TestMiller(n, t1, qi);
+        bool poklingtonResult = TestPoklingtona(n, t1, qi, R,F);
+
+        if (!millerResult || !poklingtonResult) {
             k++;
             i--;
             continue;
         }
+        bool gostResult = GOST(t, q1);
 
-        bool GOSTResult = GOST(t, q1);
+        bool veroyatnostResult = VerTest(n, t1, R, F);
+        InPut(n, veroyatnostResult, k);
 
-        InPut(RandNum, VerTest(RandNum, t, R, F), k);
-
-        if (Miller(RandNum, MnozUnikPrime, t) && Poklington(RandNum, MnozUnikPrime, t)) {
-            k=0;
+        if (millerResult && poklingtonResult) {
+            k = 0;
         }
     }
     return 0;
