@@ -18,14 +18,10 @@ double func3(double x) {
     return y;
 }
 
-
-
 int main()
 {
     cout << "Funktionswert" << endl;
     cout << "X" << "\t" << "Y" << endl;
-
-
     double dx = 0.5;
     for (double x = -5; x <= 5; x += dx) {
 

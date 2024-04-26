@@ -8,7 +8,7 @@ using namespace std;
 int coffee(double Tsr, double Tc, double HeatCoef, int t, vector<double>& Coffee);
 double aproxA(vector<double> Coffee);
 double aproxB(vector<double> Coffee, double a);
-double Correl(vector<double> Coffee);
+double Korrel(vector<double> Coffee);
 
 int main() {
 	system("chcp 65001");
@@ -30,9 +30,9 @@ int main() {
 
 	double a = aproxA(Coffee);  // в a помещаем отклонение по оси времени
 	double b = aproxB(Coffee, a);   //в b помещаем отклонение по оси температуры
-	double correl = Correl(Coffee); //высчитываем коэф.корреляции
+	double korrel = Korrel(Coffee); //высчитываем коэф.корреляции
 	cout << endl << "Линия апроксимации: " << "T = " << a << " * t + " << b << endl; //линия апроксимации
-	cout << endl << "Коэффициент корреляции " << correl << endl;  //погрешность измерений, нужно для вычисления погрешности
+	cout << endl << "Коэффициент корреляции " << korrel << endl;  //погрешность измерений, нужно для вычисления погрешности
 }
 
 int coffee(double Tsr, double Tc, double HeatCoef, int t, vector<double>& Coffee) {
@@ -70,7 +70,7 @@ double aproxB(vector<double> Coffee, double a) {
 	return (ET - a * Et) / len;
 }
 
-double Correl(vector<double> Coffee) {
+double Korrel(vector<double> Coffee) {
 
 	double sumTemp = 0;   //сумма температур
 	for (double T : Coffee) {
