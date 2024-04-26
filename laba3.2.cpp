@@ -215,7 +215,7 @@ bool VerTest(int RandNum, int t, int R, int F) {
 }
 
 void InPut(int RandNum, bool testResult, int k) { //выводим результаты
-    if (testResult && k <= 10) {
+    if (testResult && k <=5) {
         cout << RandNum << " \t\t" << "+" << " \t\t" << k << endl;
     }
     else {
